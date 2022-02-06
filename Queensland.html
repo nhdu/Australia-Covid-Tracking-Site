@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Untitled</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="https://cdn.anychart.com/releases/8.10.0/js/anychart-core.min.js" type="text/javascript"></script>
+    <script src="https://cdn.anychart.com/releases/8.10.0/js/anychart-map.min.js" type="text/javascript"></script>
+    <script src="https://cdn.anychart.com/geodata/2.1.1/countries/australia/australia.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
+    <script src="https://cdn.anychart.com/releases/8.10.0/js/anychart-base.min.js"></script>
+    <style>
+        
+    </style>
+</head>
+
+<body>
+   
+    <div id="pageContent"> 
+        
+        <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+        <div id ="container" class="card text-dark bg-light mb-3" style="width: 40rem; height: 23rem; top: 21rem; left: 1rem;">
+            <div class="card-header">Death and Recovery from covid-19 in the last 28 days</div>
+            <div id="chart1" class="card-body"></div>
+        </div>
+        <div id ="container2" class="card text-dark bg-light mb-3" style="width: 40rem; height: 23rem; top: 21rem; left: 1rem;">
+            <div class="card-header">Covid-19 tests conducted in total in the last 28 days and positive results</div>
+            <div id="chart2" class="card-body"></div>
+        </div>
+
+        <div id ="container3" class="card text-dark bg-light mb-3" style="width: 50rem; height: 30rem; top: -41rem; left: 43rem;">
+            <div class="card-header" style="text-align: center; font-weight: bold;">TOTAL COVID-19 CASES AUSTRALIA</div>
+            <div id="chart3" class="card-body"></div>
+        </div>
+
+        <div id ="container4" class="card text-dark bg-light mb-3" style="width: 50rem; height: 30rem; top: -41rem; left: 43rem;">
+            <div class="card-header" style="text-align: center; font-weight: bold;">TOTAL COVID-19 CASES AUSTRALIA</div>
+            <div id="piechart" class="card-body"></div>
+        </div>
+
+        <div id ="container5" class="card text-dark bg-light mb-3" 
+        style="width: 10rem; height: 4rem; top: -103rem; left: 1rem; text-align: center; font-weight: bold; justify-content: center; font-size: 20px;">
+            QUEENSLAND
+        </div>
+
+        <div id ="container6" class="card text-dark bg-light mb-3" 
+        style="width: 10rem; height: 4rem; top: -108rem; left: 13rem; text-align: center;">
+            <p style="font-size:20px"> 
+                <span style="font-size: 22px; font-weight: bold;"> 5.2M </span> <br> 
+                <span style="font-size: 16px;"> Population 2021 </span> <br>
+            </p>
+           
+        </div>
+
+        <div class="card text-dark bg-light mb-3" 
+        style="width: 16rem; height: 4rem; top: -113rem; left: 25rem; text-align: center;">
+            <p style="font-size:20px"> 
+                <span id="container7" style="font-size: 22px; font-weight: bold;"> </span> <br> 
+                <span style="font-size: 16px;"> Total Confirmed Cases </span> <br>
+            </p>
+        </div>
+
+        <div class="card text-dark bg-light mb-3" 
+        style="width: 18rem; height: 4rem; top: -111.5rem; left: 1rem; text-align: center;">
+            <p style="font-size:20px"> 
+                <span id="container8" style="font-size: 22px; font-weight: bold;"> </span> <br> 
+                <span style="font-size: 16px;"> New Cases </span> <br>
+            </p>
+        </div>
+
+        <div class="card text-dark bg-light mb-3" 
+        style="width: 20rem; height: 4rem; top: -116.5rem; left: 21rem; text-align: center;">
+            <p style="font-size:20px"> 
+                <span id="container9" style="font-size: 22px; font-weight: bold;"> </span> <br> 
+                <span style="font-size: 16px;"> Total Vaccine Doses </span> <br>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        anychart.onDocumentReady(function () {
+            let test = [],
+                positive = [],
+                deaths = [],
+                recoveries = [],
+                confirmedCases = [],
+                dates = [],
+                vaccine = [];
+            
+            covid19DataURL = "https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv";
+            Papa.parse(this.covid19DataURL, {
+                download: true, 
+                header: true, 
+                complete: (result)=> {
+                    recent_data= result.data.slice(-225);
+                    console.log(recent_data);
+                    updateData(recent_data);
+                },
+                });
+            
+            function updateData(data)
+            {
+                data.map((item) => {
+                    if (item.state == "Queensland")
+                    {
+                        test.push(item.tests);
+                        positive.push(item.positives);
+                        deaths.push(item.deaths);
+                        recoveries.push(item.recovered);
+                        confirmedCases.push(item.confirmed);
+                        dates.push(item.date);
+                        vaccine.push(item.vaccines_cum);
+                    }
+                });
+                const new_confirmedElement = document.querySelector("#container8");
+                new_confirmedElement.innerHTML = confirmedCases[confirmedCases.length - 1];
+                
+                const totalVaccineElement = document.querySelector("#container9");
+                totalVaccineElement.innerHTML = vaccine[vaccine.length - 1];
+                lineChartMap(test, positive, deaths, recoveries, dates);
+                pieChart();
+            }
+
+            function lineChartMap(test, positive, death, recoveries, dates)
+            {
+                dataset = [];
+                for (let i = 0; i < test.length; i++) {
+                    dataset.push([dates[i], test[i], positive[i], death[i], recoveries[i]]);
+                }
+                console.log(dataset);
+                //First Chart
+            
+                // create data set on our data
+                var dataSet = anychart.data.set(dataset);
+
+                // map data for the third series, take x from the zero column and value from the third column of data set
+                var deathData = dataSet.mapAs({ x: 0, value: 3 });
+
+                var recoveriesData = dataSet.mapAs({ x: 0, value:4});
+
+                // create line chart
+                var chart = anychart.line();
+
+                // setting animation duration:
+                chart.animation().duration(2000);
+
+                // turn on chart animation
+                chart.animation(true);
+
+                // set chart padding
+                chart.padding([10, 20, 5, 20]);
+
+                // turn on the crosshair
+                chart.crosshair().enabled(true).yLabel(false).yStroke(null);
+
+                // set tooltip mode to point
+                chart.tooltip().positionMode('point');
+
+                // set yAxis title
+                chart.yAxis().title('Quantity');
+                chart.yAxis().title().fontSize(15);
+                chart.yAxis().title().fontColor('black');
+                chart.xAxis().title().fontWeight('bold');
+
+                chart.yAxis().labels().fontSize(16);
+                chart.yAxis().labels().fontColor('black');
+                chart.xAxis().labels().fontWeight('bold');
+
+                // set xAxis title and label settings
+                chart.xAxis().labels().padding(5);
+                chart.xAxis().labels().fontWeight('bold');
+                chart.xAxis().labels().fontSize(10);
+                chart.xAxis().labels().fontColor('black');
+                
+
+                // create first series with mapped data
+                var firstSeries = chart.line(deathData);
+                firstSeries.name('Death');
+                firstSeries.hovered().markers().enabled(true).type('circle').size(4);
+                firstSeries
+                    .tooltip()
+                    .position('right')
+                    .anchor('left-center')
+                    .offsetX(5)
+                    .offsetY(5);
+                firstSeries.stroke("3 red");
+                
+
+                // create second series with mapped data
+                var secondSeries = chart.line(recoveriesData);
+                secondSeries.name('Recoveries');
+                secondSeries.hovered().markers().enabled(true).type('circle').size(4);
+                secondSeries
+                    .tooltip()
+                    .position('right')
+                    .anchor('left-center')
+                    .offsetX(5)
+                    .offsetY(5);
+                secondSeries.stroke("3 blue");
+            
+                // turn the legend on
+                chart.legend().enabled(true).fontSize(13).padding([0, 0, 10, 0]);
+
+                // set container id for the chart
+                chart.container('chart1');
+                // initiate chart drawing
+                chart.draw();
+                
+                //Second Chart
+                
+                // create data set on our data
+                var dataSet = anychart.data.set(dataset);
+
+                // map data for the first series, take x from the zero column and value from the first column of data set
+                var testData = dataSet.mapAs({ x: 0, value: 1 });
+
+                // map data for the second series, take x from the zero column and value from the second column of data set
+                var positiveData = dataSet.mapAs({ x: 0, value: 2 });
+
+                // map data for the third series, take x from the zero column and value from the third column of data set
+                var deathData = dataSet.mapAs({ x: 0, value: 3 });
+
+                var recoveriesData = dataSet.mapAs({ x: 0, value:4});
+
+                // create line chart
+                var chart = anychart.line();
+
+                // setting animation duration:
+                chart.animation().duration(2000);
+
+                // turn on chart animation
+                chart.animation(true);
+
+                // set chart padding
+                chart.padding([10, 20, 5, 20]);
+
+                // turn on the crosshair
+                chart.crosshair().enabled(true).yLabel(false).yStroke(null);
+
+                // set tooltip mode to point
+                chart.tooltip().positionMode('point');
+
+                // set yAxis title
+                chart.yAxis().title('Quantity');
+                chart.yAxis().title().fontSize(15);
+                chart.yAxis().title().fontColor('black');
+                chart.xAxis().title().fontWeight('bold');
+
+                chart.yAxis().labels().fontSize(16);
+                chart.yAxis().labels().fontColor('black');
+                chart.xAxis().labels().fontWeight('bold');
+
+                // set xAxis title and label settings
+                chart.xAxis().labels().padding(5);
+                chart.xAxis().labels().fontWeight('bold');
+                chart.xAxis().labels().fontSize(10);
+                chart.xAxis().labels().fontColor('black');
+                
+
+                // create first series with mapped data
+                var firstSeries = chart.line(testData);
+                firstSeries.name('Test');
+                firstSeries.hovered().markers().enabled(true).type('circle').size(4);
+                firstSeries
+                    .tooltip()
+                    .position('right')
+                    .anchor('left-center')
+                    .offsetX(5)
+                    .offsetY(5);
+                firstSeries.stroke("3 red");
+
+                // create second series with mapped data
+                var secondSeries = chart.line(positiveData);
+                secondSeries.name('Positive');
+                secondSeries.hovered().markers().enabled(true).type('circle').size(4);
+                secondSeries
+                    .tooltip()
+                    .position('right')
+                    .anchor('left-center')
+                    .offsetX(5)
+                    .offsetY(5);
+                secondSeries.stroke("3 blue");
+
+                // turn the legend on
+                chart.legend().enabled(true).fontSize(13).padding([0, 0, 10, 0]);
+
+                // set container id for the chart
+                chart.container('chart2');
+                // initiate chart drawing
+                chart.draw();
+
+                let Australia_Capital = 0,
+                    New_South_Wales = 0, 
+                    Northern_Territory = 0, 
+                    Queensland = 0, 
+                    South_Australia = 0, 
+                    Tasmania = 0,
+                    Victoria = 0, 
+                    Western_Australia = 0;
+
+                covid19DataURL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/web-data/data/cases_state.csv";
+                Papa.parse(this.covid19DataURL, {
+                    download: true, 
+                    header: true, 
+                    complete: (result)=> {
+                        console.log(result.data);
+                        Australia_Capital = result.data[0].Confirmed;
+                        New_South_Wales = result.data[1].Confirmed;
+                        Northern_Territory = result.data[2].Confirmed;
+                        Queensland = result.data[3].Confirmed;
+                        South_Australia = result.data[4].Confirmed;
+                        Tasmania = result.data[5].Confirmed;
+                        Victoria = result.data[6].Confirmed;
+                        Western_Australia = result.data[7].Confirmed;
+                        updateData(result.data);
+                    },
+                    }); 
+                
+                
+
+                function updateData(data) {
+                    var dataSet = [
+                        {'id': 'AU.WA', 'value': Western_Australia},
+                        {'id': 'AU.NS', 'value': New_South_Wales}, 
+                        {'id': 'AU.VI', 'value': Victoria}, 
+                        {'id': 'AU.NT', 'value': Northern_Territory}, 
+                        {'id': 'AU.TS', 'value': Tasmania}, 
+                        {'id': 'AU.CT', 'value': Australia_Capital}, 				 
+                        {'id': 'AU.SA', 'value': South_Australia},                
+                        {'id': 'AU.QL', 'value': Queensland, label:{format: "Queensland", fontColor: "white"}}  
+                    ];
+
+                    //
+                    var map = anychart.map();
+                    map.geoData(anychart.maps.australia);
+
+                    // set the series
+                    var series = map.choropleth(dataSet);
+
+                    // enable color
+                    ordinalScale = anychart.scales.ordinalColor([
+                        {less: 0},
+                        {from: 0, to: 500},
+                        {from: 500, to: 1000},
+                        {from: 1000, to: 30000},
+                        {from: 30000, to: 50000},
+                        {from: 50000, to: 100000},
+                        {from: 100000, to: 500000},
+                        {greater:500000}
+                    ]);         
+                    
+                    ordinalScale.colors(['rgb(253,225,86)','rgb(248,196,57)', 'rgb(244,168,19)', 'rgb(198,109,1)', 'rgb(152,58,0)']);
+                    series.colorScale(ordinalScale);
+                    // disable labels
+                    series.labels(false);
+                    map.colorRange(true);
+                    
+
+                    // set the container
+                    map.container('chart3');
+                    map.draw();   
+
+                    // Confirmed Cases card HTML
+                    const totalConfirmedElement = document.querySelector("#container7");
+                    console.log(Queensland);
+                    totalConfirmedElement.innerHTML = Queensland;      
+                }
+
+            }
+
+            function pieChart()
+            {
+                let totalConfirmed = [],
+                    totalDeaths = [],
+                    totalPositives = [],
+                    totalRecovered = [],
+                    totalHos = [];
+                
+                covid19DataURL_StateCumulative = "https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state_cumulative.csv";
+                Papa.parse(this.covid19DataURL_StateCumulative, {
+                    download: true, 
+                    header: true, 
+                    complete: (result)=> {
+                        state_latest_data = result.data.slice(-9);
+                        console.log(state_latest_data);
+                        state_latest_data.map((item) => {
+                            if (item.state == "Queensland")
+                            {
+                                totalConfirmed.push(item.confirmed);
+                                totalDeaths.push(item.deaths);
+                                totalPositives.push(item.positives);
+                                totalHos.push(item.hosp);
+                                totalRecovered.push(item.recovered);
+                            }
+                        });
+                        draw_pieChart(totalConfirmed, totalDeaths, totalPositives, totalHos, totalRecovered);
+                    },
+                });
+            }
+
+            function draw_pieChart(totalConfirmed, totalDeaths, totalPositives, totalHos, totalRecovered)
+            {
+                console.log(totalConfirmed[0]);
+                var data = [
+                    {x: "Total Confirmed Cases", value: totalConfirmed[0]},
+                    {x: "Total Deaths", value: totalDeaths[0], state: "selected"},
+                    // {x: "Total Positives", value: totalPositives[0], state:"selected"},
+                    {x: "Total Hospitalized", value: totalHos[0], state:"selected"},
+                    {x: "Total Recovered", value: totalRecovered[0]}
+                    ];
+
+                    // create a chart and set the data
+                    var chart = anychart.pie(data);
+
+                    // set the explosion range in different states
+                    chart.selected().explode("3%");
+                    chart.hovered().explode("3%");
+
+                    // explode the fourth and fifth slices
+                    
+                    chart.radius("50%");
+
+                    // set the chart title
+                    chart.title("Pie Chart: Exploded Slices");
+
+                    // set the container id
+                    chart.container("piechart");
+                    chart.animation(true, 100);
+
+                    // initiate drawing the chart
+                    chart.draw();  
+            }  
+        });
+    </script>
+</body>
+
+</html>
